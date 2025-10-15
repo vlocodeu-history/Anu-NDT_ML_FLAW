@@ -223,8 +223,6 @@ if page == "About Project":
     ### 🏭 Industrial Application
     Integrates into QC pipelines to automate detection, reduce inspection time, and provide auditable statistics.
 
-    ### 👥 Credits
-    Dataset & inspiration from **Koomas / NDT_ML_Flaw**.
     """)
 
 # -------- Overview --------
@@ -435,4 +433,59 @@ elif page == "Validate (Stats)":
             st.pyplot(fig, clear_figure=True)
 
         st.subheader("Shard sizes")
-        fig2 = 
+        fig2 = plt.figure(figsize=(8,3))
+        plt.bar(np.arange(len(counts)), counts)
+        plt.xlabel("Shard index"); plt.ylabel("Rows")
+        st.pyplot(fig2, clear_figure=True)
+
+# -------- Explore Dataset --------
+elif page == "Explore Dataset":
+    st.title("Browse a few samples")
+    if not manifest:
+        st.info("Manifest missing.")
+    else:
+        img_files, lab_files, counts = list_part_files(manifest)
+        shard_sel = st.number_input("Select shard", 0, len(img_files)-1, 0, 1)
+        X = np.load(img_files[shard_sel], mmap_mode="r")
+        y = np.load(lab_files[shard_sel], mmap_mode="r")
+        n = X.shape[0]
+
+        start = st.slider("Row range start", 0, max(0, n-8), 0, 1)
+        show_n = st.slider("How many to show", 1, min(8, n-start), 4, 1)
+
+        cols = st.columns(show_n)
+        for i in range(show_n):
+            idx = start + i
+            xi = X[idx][...,0]
+            yi = int(y[idx])
+            with cols[i]:
+                st.caption(f"Row {idx} – {'FLAW' if yi==1 else 'NO FLAW'}")
+                fig = plt.figure(figsize=(3,1.5))
+                plt.imshow(xi, cmap="gray", aspect="auto")
+                plt.axis("off")
+                st.pyplot(fig, clear_figure=True)
+
+# -------- Training Logs --------
+elif page == "Training Logs":
+    st.title("Training logs & metrics")
+    log_path = MODEL_DIR / "training_log.csv"
+    met_path = MODEL_DIR / "metrics.txt"
+
+    cols = st.columns(2)
+    with cols[0]:
+        st.subheader("CSV log")
+        if log_path.exists():
+            import pandas as pd  # for nice table; add to your requirements
+            df = pd.read_csv(log_path)
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("No training_log.csv found.")
+
+    with cols[1]:
+        st.subheader("Key metrics")
+        if met_path.exists():
+            st.code(met_path.read_text())
+        else:
+            st.info("No metrics.txt found.")
+
+    st.caption("Tip: Run your training script; this page will read its outputs from the models/ folder.")
