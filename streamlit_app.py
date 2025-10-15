@@ -65,6 +65,12 @@ def preprocess_strip(x: np.ndarray, target_H: int) -> np.ndarray:
             x = np.array(Image.fromarray((x[...,0]*255).astype(np.uint8)).resize((new_w, target_H)))
             x = x.astype(np.float32)/255.0
             x = x[...,None]
+        if not TF_OK:
+            st.sidebar.warning(
+            "TensorFlow isn’t available on this deployment. "
+            "‘Predict (shard)’ and ‘Threshold Tuning’ need TF. "
+            "Use local run or deploy on Render/HF Spaces for full features."
+            )
     if USE_CROP:
         L, R = scaled_band(x.shape[1])
         x = x[:, L:R, :]
