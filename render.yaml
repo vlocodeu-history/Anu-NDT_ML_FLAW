@@ -1,11 +1,14 @@
 services:
   - type: web
-    name: ndt-ml-flaw
+    name: ndt-l-flaw
     env: python
-    region: singapore    # or oregon/frankfurt; pick closest
-    plan: free          # or starter
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0"
+    region: singapore        # pick closest
+    plan: free               # or starter
+    buildCommand: >
+      pip install --upgrade pip setuptools wheel &&
+      pip install --no-cache-dir -r requirements.txt
+    startCommand: >
+      streamlit run app.py --server.port $PORT --server.address 0.0.0.0
     envVars:
       - key: STREAMLIT_SERVER_HEADLESS
         value: "true"
@@ -17,4 +20,4 @@ services:
         value: "/data/uploads"
       - key: MODEL_DIR
         value: "/data/models"
-   
+  
